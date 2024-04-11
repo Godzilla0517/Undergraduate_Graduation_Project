@@ -30,7 +30,7 @@ class CustomCNN(nn.Module):
         )
         self.classifier = nn.Sequential(
             nn.Flatten(),  
-            nn.Linear(128 * 5 * 4, 10)            
+            nn.Linear(128 * 5 * 4, 5)            
         )
         
     def forward(self, x):
