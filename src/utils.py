@@ -196,4 +196,3 @@ def save_model(model, target_dir, model_name):
     print(f"[INFO] Saving model to: {model_save_path}")
     torch.save(obj=model.state_dict(), f=model_save_path)
 
-
