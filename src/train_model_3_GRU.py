@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
-from torchaudio.transforms import MelSpectrogram, AmplitudeToDB
+from torchaudio.transforms import MelSpectrogram
 from torch.utils.data import DataLoader
 from timeit import default_timer as timer
-from model_builder import CustomGRU
+from model_builder import GRU
 from data_setup import DroneAudioDataset
-from engine_RNN import train
+from engine import train
 from utils import split_dataset, plot_loss_curves, plot_acc_curves, save_model
 
 
@@ -19,7 +19,7 @@ NUM_CLASSES = 5
 BATCH_SIZE = 64
 EPOCHS = 20
 LEARNING_RATE = 0.001
-model_3 = CustomGRU(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, NUM_CLASSES, DEVICE).to(DEVICE)
+model_3 = GRU(INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, NUM_CLASSES, DEVICE).to(DEVICE)
 criterion = nn.CrossEntropyLoss()
 trainer = torch.optim.Adam(model_3.parameters(), lr=LEARNING_RATE)
 adjuster = torch.optim.lr_scheduler.StepLR(optimizer=trainer, step_size=7, gamma=0.1)
@@ -49,13 +49,14 @@ model_results = train(
     optimizer=trainer,
     scheduler=adjuster,
     epochs=EPOCHS,
-    device=DEVICE
+    device=DEVICE,
+    is_RNN=True
 )
 end_time = timer()
 print(f"Total training time: {end_time - start_time:.3f} seconds")
 save_model(model=model_3, 
            target_dir=r"C:\MachineLearning\Graduation_Project\models", 
-           model_name="Model_3_CustomGRU.pth")
+           model_name="Model_3_GRU.pth")
 plot_loss_curves(training_results=model_results)
 plot_acc_curves(training_results=model_results)
 

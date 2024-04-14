@@ -3,10 +3,10 @@ import torch.nn as nn
 from torchaudio.transforms import MelSpectrogram, AmplitudeToDB
 from torch.utils.data import DataLoader
 from timeit import default_timer as timer
-from model_builder import CustomCNN, ModifiedResnet18
+from model_builder import Resnet18
 from data_setup import DroneAudioDataset
 from utils import split_dataset, plot_loss_curves, plot_acc_curves, MonoToColor, save_model
-from engine_CNN import train
+from engine import train
 from torchvision import transforms
 
 
@@ -19,13 +19,14 @@ ANNOTATIONS_FILE = r"C:\MachineLearning\Graduation_Project\data\DroneAudio.xlsx"
 AUDIO_DIR = r"C:\MachineLearning\Graduation_Project\data\DroneAudio_Mono_16K"
 SAMPLE_RATE = 22050
 NUM_SAMPLES = 22050
-TRANSFORMATION_0 = MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
-TRANSFORMATION_1 = transforms.Compose([TRANSFORMATION_0, AmplitudeToDB(stype="power", top_db=80), MonoToColor()])
+TRANSFORMATION_1 = transforms.Compose(
+    [MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64), 
+     AmplitudeToDB(stype="power", top_db=80), 
+     MonoToColor()])
 
 
 
-model_0 = CustomCNN().to(DEVICE)
-model_1 = ModifiedResnet18().to(DEVICE)
+model_1 = Resnet18().to(DEVICE)
 criterion = nn.CrossEntropyLoss()
 trainer = torch.optim.Adam(model_1.parameters(), lr=LEARNING_RATE)
 Drone_audio = DroneAudioDataset(ANNOTATIONS_FILE, AUDIO_DIR, SAMPLE_RATE, NUM_SAMPLES, TRANSFORMATION_1)
@@ -49,12 +50,13 @@ model_results = train(
     optimizer=trainer,
     scheduler=adjuster,
     epochs=EPOCHS,
-    device=DEVICE
+    device=DEVICE,
+    is_RNN=False
 )
 end_time = timer()
 print(f"Total training time: {end_time - start_time:.3f} seconds")
 save_model(model=model_1, 
            target_dir=r"C:\MachineLearning\Graduation_Project\models", 
-           model_name="Model_1_ModifiedResNet18.pth")
+           model_name="Model_1_ResNet18.pth")
 plot_loss_curves(training_results=model_results)
 plot_acc_curves(training_results=model_results)

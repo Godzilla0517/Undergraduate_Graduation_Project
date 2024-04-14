@@ -11,7 +11,6 @@ from utils import  MonoToColor
 class DroneAudioDataset(Dataset):
 
     def __init__(self, annotations_file, audio_dir, target_sr, num_samples, transformation):
-
         self.annotations = pd.read_excel(annotations_file)
         self.audio_dir = audio_dir
         self.target_sr = target_sr
@@ -19,11 +18,9 @@ class DroneAudioDataset(Dataset):
         self.transformation = transformation
 
     def __len__(self):
-
         return len(self.annotations)
 
     def __getitem__(self, index):
-
         sample_path = self._get_sample_path(index)
         label = self._get_sample_label(index)
         signal, sr = torchaudio.load(sample_path)
@@ -34,30 +31,25 @@ class DroneAudioDataset(Dataset):
         return signal, label
 
     def _get_sample_path(self, index):
-
         folder = f"{self.annotations.iloc[index, 1]}"
         path = os.path.join(self.audio_dir, folder, self.annotations.iloc[index, 0])
         return path
     
     def _get_sample_label(self, index):
-
         return self.annotations.iloc[index, 2]
     
     def _resample(self, signal, sr):
-        
         if sr != self.target_sr:
             resampler = torchaudio.transforms.Resample(sr, self.target_sr)
             signal = resampler(signal)    
         return signal
     
     def _cut(self, signal):
-        
         if signal.shape[1] > self.num_samples:
             signal = signal[:, :self.num_samples]
         return signal
 
     def _pad(self, signal):
-
         length_signal = signal.shape[1]
         if length_signal < self.num_samples:
             num_missing = self.num_samples - length_signal

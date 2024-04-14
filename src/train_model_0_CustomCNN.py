@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
-from torchaudio.transforms import MelSpectrogram, AmplitudeToDB
+from torchaudio.transforms import MelSpectrogram
 from torch.utils.data import DataLoader
 from timeit import default_timer as timer
 from model_builder import CustomCNN
 from data_setup import DroneAudioDataset
 from utils import split_dataset, plot_loss_curves, plot_acc_curves, save_model
-from engine_CNN import train
+from engine import train
 
 
 
@@ -22,7 +22,7 @@ TRANSFORMATION_0 = MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=1024, hop_lengt
 
 
 
-model_0 = CustomCNN().to(DEVICE)
+model_0 = CustomCNN(num_classes=6).to(DEVICE)
 criterion = nn.CrossEntropyLoss()
 trainer = torch.optim.Adam(model_0.parameters(), lr=LEARNING_RATE)
 Drone_audio = DroneAudioDataset(ANNOTATIONS_FILE, AUDIO_DIR, SAMPLE_RATE, NUM_SAMPLES, TRANSFORMATION_0)
@@ -30,7 +30,7 @@ adjuster = torch.optim.lr_scheduler.StepLR(optimizer=trainer, step_size=7, gamma
 
 
 
-train_dataset, test_dataset = split_dataset(dataset=Drone_audio, train_radio=0.8, random_seed=None)
+train_dataset, test_dataset = split_dataset(dataset=Drone_audio, train_radio=0.8, random_seed=42)
 train_iter = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 test_iter = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 print("Dataset Ready!")
@@ -46,7 +46,8 @@ model_results = train(
     optimizer=trainer,
     scheduler=adjuster,
     epochs=EPOCHS,
-    device=DEVICE
+    device=DEVICE,
+    is_RNN=False
 )
 end_time = timer()
 print(f"Total training time: {end_time - start_time:.3f} seconds")

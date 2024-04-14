@@ -15,32 +15,27 @@ from pathlib import Path
 def format_transform(source_folder: str) -> None:
     """
     Change the format of audio from raw to wav.
-    There are several folders under a source folder, the audio with format of raw are in these folders.
+    There are several folders under a source folder, 
+    the audio with format of raw are in these folders.
 
     Args:
-        source_folder: The path of source folder.   
+        source_folder: The path of source folder with raw format of audio.   
     """
     for root, _, files in os.walk(source_folder):
         for file in files:
             if file.endswith('.raw'):
                 file_path = os.path.join(root, file)
-
                 with open(file_path, 'rb') as raw_file:
-                    raw_data = raw_file.read()
-                                                                  
+                    raw_data = raw_file.read()                                             
                 raw_array = np.frombuffer(raw_data, dtype=np.int16)
-
                 sample_width = 2
-
                 frame_rate = 48000  
-
                 wave_file = wave.open(os.path.join(root, file.replace('.raw', '.wav')), 'w')
                 wave_file.setnchannels(1)
                 wave_file.setsampwidth(sample_width)
                 wave_file.setframerate(frame_rate)
                 wave_file.writeframes(raw_array.tobytes())
                 wave_file.close()
-
                 print(f'Converted {file} to .wav format.')
 
 
@@ -117,12 +112,10 @@ def resample_to_16k(input_folder: str, output_folder: str):
 class MonoToColor(nn.Module):
     
     def __init__(self, num_channels=3):
-        
         super(MonoToColor, self).__init__()
         self.num_channels = num_channels
         
     def forward(self, x):
-        
         return x.repeat(self.num_channels, 1, 1)
     
     
@@ -130,11 +123,9 @@ class MonoToColor(nn.Module):
 def split_dataset(dataset, train_radio, random_seed=None):
     if random_seed is not None:
         torch.manual_seed(random_seed)
-
     train_size = int(train_radio * len(dataset))
     test_size = len(dataset) - train_size
     train_data, test_data = random_split(dataset=dataset, lengths=[train_size, test_size])
-
     return train_data, test_data
 
 
@@ -152,8 +143,8 @@ def plot_loss_curves(training_results: dict[str, list[float]]):
     Test_Loss = training_results['test_loss']
     epochs = range(len(training_results['train_loss']))
     plt.figure(figsize=(18, 12))
-    plt.plot(epochs, Train_Loss, label='Train_Loss', linewidth=3)
-    plt.plot(epochs, Test_Loss, label='Test_Loss', linewidth=3)
+    plt.plot(epochs, Train_Loss, label='Train_Loss', linewidth=2)
+    plt.plot(epochs, Test_Loss, label='Val_Loss', linewidth=2)
     plt.title("Loss Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
     plt.gca().xaxis.set_major_locator(MultipleLocator(4))
@@ -171,8 +162,8 @@ def plot_acc_curves(training_results: dict[str, list[float]]):
     Test_Accuracy = training_results['test_acc']
     epochs = range(len(training_results['train_loss']))
     plt.figure(figsize=(18, 12))
-    plt.plot(epochs, Train_Accuracy, label='Train_Acc', linewidth=3)
-    plt.plot(epochs, Test_Accuracy, label='Test_Acc', linewidth=3)
+    plt.plot(epochs, Train_Accuracy, label='Train_Acc', linewidth=2)
+    plt.plot(epochs, Test_Accuracy, label='Val_Acc', linewidth=2)
     plt.title("Acc Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
     plt.gca().xaxis.set_major_locator(MultipleLocator(4))

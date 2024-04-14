@@ -5,8 +5,7 @@ from torchvision.models import resnet18
 
 class CustomCNN(nn.Module):
     
-    def __init__(self):
-        
+    def __init__(self, num_classes):
         super().__init__()
         self.layer_1 = nn.Sequential(
             nn.Conv2d(1, 16, 3, 1, 2),
@@ -30,11 +29,10 @@ class CustomCNN(nn.Module):
         )
         self.classifier = nn.Sequential(
             nn.Flatten(),  
-            nn.Linear(128 * 5 * 4, 5)            
+            nn.Linear(128 * 5 * 4, num_classes)            
         )
         
     def forward(self, x):
-        
         x = self.layer_1(x)
         x = self.layer_2(x)
         x = self.layer_3(x)
@@ -44,18 +42,16 @@ class CustomCNN(nn.Module):
 
 
 
-class ModifiedResnet18(nn.Module):
+class Resnet18(nn.Module):
     
     def __init__(self, num_classes=5, dropout_prob=0.2):
-        
-        super(ModifiedResnet18, self).__init__()
+        super(Resnet18, self).__init__()
         self.resnet = resnet18(weights=None)
         self.resnet.fc = nn.Linear(512, num_classes)
         self.dropout = nn.Dropout(dropout_prob)
         self.flatten = nn.Flatten()
         
     def forward(self, x):
-        
         x = self.resnet.conv1(x)
         x = self.resnet.bn1(x)
         x = self.resnet.relu(x)
@@ -74,10 +70,10 @@ class ModifiedResnet18(nn.Module):
         return x
 
 
-class CustomRNN(nn.Module):
+class RNN(nn.Module):
     
     def __init__(self, input_size, hidden_size, num_layers, num_classes, device):
-        super(CustomRNN, self).__init__()
+        super(RNN, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
@@ -92,10 +88,10 @@ class CustomRNN(nn.Module):
         return x
 
 
-class CustomGRU(nn.Module):
+class GRU(nn.Module):
     
     def __init__(self, input_size, hidden_size, num_layers, num_classes, device):
-        super(CustomGRU, self).__init__()
+        super(GRU, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
@@ -110,10 +106,10 @@ class CustomGRU(nn.Module):
         return x        
     
     
-class CustomLSTM(nn.Module):
+class LSTM(nn.Module):
     
     def __init__(self, input_size, hidden_size, num_layers, num_classes, device):
-        super(CustomLSTM, self).__init__()
+        super(LSTM, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
