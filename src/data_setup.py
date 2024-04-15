@@ -70,12 +70,13 @@ if __name__ == "__main__":
         n_fft=1024,
         hop_length=512, 
         n_mels=64)
-    TRANSFORMATION = transforms.Compose([MEL_SPECTROGRAM, MonoToColor()])
+    TRANSFORMATION = transforms.Compose([
+        MEL_SPECTROGRAM, 
+        torchaudio.transforms.AmplitudeToDB(stype='power', top_db=80), 
+        MonoToColor()])
     drone_audio = DroneAudioDataset(ANNOTATIONS_FILE, AUDIO_DIR, SAMPLE_RATE, NUM_SAMPLES, TRANSFORMATION)
     print(f"There are {len(drone_audio)} samples in the dataset.")
     signal, label = drone_audio[1]
     print(signal)
     print(signal.shape)
     
-    data_iter = DataLoader(dataset=drone_audio, batch_size=64, shuffle=True)
-    print(next(iter(data_iter)))

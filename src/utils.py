@@ -165,7 +165,7 @@ def plot_acc_curves(training_results: dict[str, list[float]]):
     Train_Accuracy = training_results['train_acc']
     Test_Accuracy = training_results['val_acc']
     epochs = range(len(training_results['train_loss']))
-    plt.figure(figsize=(14, 18))
+    plt.figure(figsize=(14, 8))
     plt.plot(epochs, Train_Accuracy, label='Train_Acc', linewidth=2)
     plt.plot(epochs, Test_Accuracy, label='Validation_Acc', linewidth=2)
     plt.title("Acc Curves", fontsize=25)

@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
-from torchaudio.transforms import MelSpectrogram
+from torchaudio.transforms import MelSpectrogram, AmplitudeToDB
 from torch.utils.data import DataLoader
 from timeit import default_timer as timer
 from model_builder import CustomCNN
 from data_setup import DroneAudioDataset
 from utils import split_dataset, plot_loss_curves, plot_acc_curves, save_model, eval_model
 from engine import train
+from torchvision import transforms
 
 
 
@@ -18,7 +19,10 @@ ANNOTATIONS_FILE = r"C:\MachineLearning\Graduation_Project\data\DroneAudio.xlsx"
 AUDIO_DIR = r"C:\MachineLearning\Graduation_Project\data\DroneAudio_Mono_16K"
 SAMPLE_RATE = 22050
 NUM_SAMPLES = 22050
-TRANSFORMATION_0 = MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
+TRANSFORMATION_0 = transforms.Compose([
+    MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64), 
+    AmplitudeToDB(stype="power", top_db=80)
+])
 
 
 
@@ -38,8 +42,7 @@ train_dataset, val_dataset, test_dataset = split_dataset(
     random_seed=None)
 train_iter = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_iter = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-test_iter = DataLoader(dataset=test_dataset, batch_size=412, shuffle=True)
-print(len(test_dataset))
+test_iter = DataLoader(dataset=test_dataset, batch_size=len(test_dataset), shuffle=True)
 print("Dataset Ready!")
 print("-" * 100)
 
