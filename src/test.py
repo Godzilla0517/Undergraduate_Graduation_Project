@@ -8,8 +8,6 @@ from data_setup import DroneAudioDataset
 from utils import split_dataset, plot_loss_curves, plot_acc_curves, save_model, eval_model
 from engine import train
 
-
-
 BATCH_SIZE = 64
 EPOCHS = 20
 LEARNING_RATE = 0.001
@@ -44,27 +42,6 @@ print("Dataset Ready!")
 print("-" * 100)
 
 
-start_time = timer()
-model_results = train(
-    model=model_0,
-    train_dataloader=train_iter,
-    val_dataloader=val_iter,
-    loss_fn=criterion,
-    optimizer=trainer,
-    scheduler=adjuster,
-    epochs=EPOCHS,
-    device=DEVICE,
-    is_RNN=False
-)
-end_time = timer()
-total_time_model_0 = end_time - start_time
-print("-" * 100)
-print(f"Total training time: {total_time_model_0:.3f} seconds")
-save_model(model=model_0, 
-           target_dir=r"C:\MachineLearning\Graduation_Project\models", 
-           model_name="Model_0_CustomCNN.pth")
-plot_loss_curves(training_results=model_results)
-plot_acc_curves(training_results=model_results)
 
 loaded_model_0 = CustomCNN(num_classes=6)
 loaded_model_0.load_state_dict(

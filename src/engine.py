@@ -1,7 +1,6 @@
 import torch
 
 
-
 def train_step(model, dataloader, loss_fn, optimizer, device, is_RNN=False):
     train_loss, train_acc = 0, 0
     model.train()
@@ -23,27 +22,27 @@ def train_step(model, dataloader, loss_fn, optimizer, device, is_RNN=False):
 
 
 
-def test_step(model, dataloader, loss_fn, device, is_RNN=False):
+def val_step(model, dataloader, loss_fn, device, is_RNN=False):
     model.eval()
-    test_loss, test_acc = 0, 0
+    val_loss, val_acc = 0, 0
     with torch.inference_mode():
-        for X_test, y_test in dataloader:
+        for X_val, y_val in dataloader:
             if is_RNN is True:
-                X_test, y_test = X_test.reshape(-1, 44, 64).to(device), y_test.to(device)
+                X_val, y_val = X_val.reshape(-1, 44, 64).to(device), y_val.to(device)
             else:
-                X_test, y_test = X_test.to(device), y_test.to(device)
-            test_pred = model(X_test)
-            test_loss += loss_fn(test_pred, y_test).item()
-            test_acc += torch.eq(test_pred.argmax(dim=1), y_test).sum().item() / len(test_pred)
-        test_loss /= len(dataloader)
-        test_acc /= len(dataloader)
-    return test_loss, test_acc
+                X_val, y_val = X_val.to(device), y_val.to(device)
+            val_pred = model(X_val)
+            val_loss += loss_fn(val_pred, y_val).item()
+            val_acc += torch.eq(val_pred.argmax(dim=1), y_val).sum().item() / len(val_pred)
+        val_loss /= len(dataloader)
+        val_acc /= len(dataloader)
+    return val_loss, val_acc
 
 
 
-def train(model, train_dataloader, test_dataloader, loss_fn, optimizer, scheduler, epochs, device, is_RNN):
+def train(model, train_dataloader, val_dataloader, loss_fn, optimizer, scheduler, epochs, device, is_RNN):
     
-    results = {"train_loss": [], "train_acc": [], "test_loss": [], "test_acc": []}
+    results = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
     for epoch in range(epochs):
         train_loss, train_acc = train_step(
             model=model, 
@@ -53,17 +52,17 @@ def train(model, train_dataloader, test_dataloader, loss_fn, optimizer, schedule
             device=device, 
             is_RNN=is_RNN)
         scheduler.step()
-        test_loss, test_acc = test_step(
+        val_loss, val_acc = val_step(
             model=model, 
-            dataloader=test_dataloader, 
+            dataloader=val_dataloader, 
             loss_fn=loss_fn, 
             device=device, 
             is_RNN=is_RNN) 
         print(f"Epoch: {epoch + 1} | "
               f"train_loss: {train_loss: .4f} | train_acc: {train_acc:.4f} | "
-              f"test_loss: {test_loss:.4f} | test_acc: {test_acc:.4f}")
+              f"val_loss: {val_loss:.4f} | val_acc: {val_acc:.4f}")
         results["train_loss"].append(train_loss)
         results["train_acc"].append(train_acc)
-        results["test_loss"].append(test_loss)
-        results["test_acc"].append(test_acc) 
+        results["val_loss"].append(val_loss)
+        results["val_acc"].append(val_acc) 
     return results

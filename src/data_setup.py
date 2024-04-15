@@ -3,7 +3,7 @@ import pandas as pd
 import torchaudio
 import torch
 from torchvision import transforms
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from utils import  MonoToColor
 
 
@@ -66,14 +66,16 @@ if __name__ == "__main__":
     SAMPLE_RATE = 22050 
     NUM_SAMPLES = 22050
     MEL_SPECTROGRAM = torchaudio.transforms.MelSpectrogram(
-        sample_rate=SAMPLE_RATE, 
-        n_fft=1024, 
+        sample_rate=SAMPLE_RATE,
+        n_fft=1024,
         hop_length=512, 
-        n_mels=64
-    )
-    
-    drone_audio = DroneAudioDataset(ANNOTATIONS_FILE, AUDIO_DIR, SAMPLE_RATE, NUM_SAMPLES, MEL_SPECTROGRAM)
+        n_mels=64)
+    TRANSFORMATION = transforms.Compose([MEL_SPECTROGRAM, MonoToColor()])
+    drone_audio = DroneAudioDataset(ANNOTATIONS_FILE, AUDIO_DIR, SAMPLE_RATE, NUM_SAMPLES, TRANSFORMATION)
     print(f"There are {len(drone_audio)} samples in the dataset.")
     signal, label = drone_audio[1]
     print(signal)
     print(signal.shape)
+    
+    data_iter = DataLoader(dataset=drone_audio, batch_size=64, shuffle=True)
+    print(next(iter(data_iter)))

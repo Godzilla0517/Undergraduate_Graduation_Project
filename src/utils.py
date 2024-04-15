@@ -120,13 +120,16 @@ class MonoToColor(nn.Module):
     
     
     
-def split_dataset(dataset, train_radio, random_seed=None):
+def split_dataset(dataset, train_radio, test_ratio, random_seed=None):
     if random_seed is not None:
         torch.manual_seed(random_seed)
-    train_size = int(train_radio * len(dataset))
-    test_size = len(dataset) - train_size
-    train_data, test_data = random_split(dataset=dataset, lengths=[train_size, test_size])
-    return train_data, test_data
+    test_size = int(test_ratio * len(dataset))
+    train_val_size = len(dataset) - test_size
+    train_val_data, test_data = random_split(dataset, [train_val_size, test_size])
+    train_size = int(train_radio * len(train_val_data))
+    val_size = train_val_size - train_size
+    train_data, val_data = random_split(train_val_data, [train_size, val_size]) 
+    return train_data, val_data, test_data
 
 
 
@@ -137,17 +140,18 @@ def plot_loss_curves(training_results: dict[str, list[float]]):
     Args:
         training_results (dict): dictionary containing list of values, e.g.
             {"train_loss": [...], "train_acc": [...],
-             "test_loss": [...], "test_acc": [...]}
+             "val_loss": [...], "val_acc": [...]}
     """
     Train_Loss = training_results['train_loss']
-    Test_Loss = training_results['test_loss']
+    Test_Loss = training_results['val_loss']
     epochs = range(len(training_results['train_loss']))
-    plt.figure(figsize=(18, 12))
+    plt.figure(figsize=(14, 8))
     plt.plot(epochs, Train_Loss, label='Train_Loss', linewidth=2)
-    plt.plot(epochs, Test_Loss, label='Val_Loss', linewidth=2)
+    plt.plot(epochs, Test_Loss, label='Validation_Loss', linewidth=2)
     plt.title("Loss Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
-    plt.gca().xaxis.set_major_locator(MultipleLocator(4))
+    plt.gca().xaxis.set_major_locator(MultipleLocator(2))
+    plt.gca().yaxis.set_major_locator(MultipleLocator(0.25))
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
     plt.legend(fontsize=22)
@@ -159,14 +163,15 @@ def plot_loss_curves(training_results: dict[str, list[float]]):
 def plot_acc_curves(training_results: dict[str, list[float]]):
     
     Train_Accuracy = training_results['train_acc']
-    Test_Accuracy = training_results['test_acc']
+    Test_Accuracy = training_results['val_acc']
     epochs = range(len(training_results['train_loss']))
-    plt.figure(figsize=(18, 12))
+    plt.figure(figsize=(14, 18))
     plt.plot(epochs, Train_Accuracy, label='Train_Acc', linewidth=2)
-    plt.plot(epochs, Test_Accuracy, label='Val_Acc', linewidth=2)
+    plt.plot(epochs, Test_Accuracy, label='Validation_Acc', linewidth=2)
     plt.title("Acc Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
-    plt.gca().xaxis.set_major_locator(MultipleLocator(4))
+    plt.gca().xaxis.set_major_locator(MultipleLocator(2))
+    plt.gca().yaxis.set_major_locator(MultipleLocator(0.05))
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
     plt.legend(fontsize=22)
@@ -174,16 +179,48 @@ def plot_acc_curves(training_results: dict[str, list[float]]):
     plt.show()
 
 
-
-
 def save_model(model, target_dir, model_name):
     
     target_dir_path = Path(target_dir)
     target_dir_path.mkdir(parents=True, exist_ok=True)
-    
+
     assert model_name.endswith(".pth") or model_name.endswith(".pt"), "model_name should end with '.pt' or '.pth'"
     model_save_path = target_dir_path / model_name
-
     print(f"[INFO] Saving model to: {model_save_path}")
     torch.save(obj=model.state_dict(), f=model_save_path)
 
+
+def eval_model(model, dataloader, device, num_classes, is_RNN):
+    test_acc = 0.0
+    test_precision = [0.0] * num_classes
+    test_recall = [0.0] * num_classes
+    model.eval()
+    with torch.no_grad():
+        for X_test, y_test in dataloader:
+            if is_RNN is True:
+                X_test, y_test = X_test.reshape(-1, 44, 64).to(device), y_test.to(device)
+            else:
+                X_test, y_test = X_test.to(device), y_test.to(device)
+            y_pred = model(X_test)
+            y_hat = y_pred.argmax(dim=1)
+            test_acc += torch.eq(y_hat, y_test).sum().item() / len(y_test)
+            for i in range(num_classes):
+                test_precision[i] += (sum((y_hat == i) & (y_test == i)) / sum(y_hat == i)).item()
+                test_recall[i] += (sum((y_hat == i) & (y_test == i)) / sum(y_test == i)).item()
+        test_acc /= len(dataloader)
+        precision = (sum(test_precision) / num_classes)/ len(dataloader)
+        recall = (sum(test_recall) / num_classes) / len(dataloader)
+        F1_Score = 2 * precision * recall / (precision + recall)
+        print("-" * 100)
+        print(f"model_name: {model.__class__.__name__} | "
+              f"model_acc: {test_acc:.4f} | "
+              f"model_precision: {precision:.4f} | "
+              f"model_recall: {recall:.4f} | "
+              f"model_F1_score: {F1_Score:.4f}")
+        
+        return {"model_name": model.__class__.__name__, 
+                "model_acc": test_acc, 
+                "model_precision": precision, 
+                "model_recall": recall, 
+                "model_test_F1": F1_Score}
+            

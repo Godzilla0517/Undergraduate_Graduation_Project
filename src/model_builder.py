@@ -41,32 +41,15 @@ class CustomCNN(nn.Module):
         return predictions
 
 
-
-class Resnet18(nn.Module):
+class ResNet18(nn.Module):
     
-    def __init__(self, num_classes=5, dropout_prob=0.2):
-        super(Resnet18, self).__init__()
-        self.resnet = resnet18(weights=None)
-        self.resnet.fc = nn.Linear(512, num_classes)
-        self.dropout = nn.Dropout(dropout_prob)
-        self.flatten = nn.Flatten()
+    def __init__(self, num_classes):
+        super(ResNet18, self).__init__()
+        self.resnet_18 = resnet18(weights=None)
+        self.resnet_18.fc = nn.Linear(512, num_classes)
         
     def forward(self, x):
-        x = self.resnet.conv1(x)
-        x = self.resnet.bn1(x)
-        x = self.resnet.relu(x)
-        x = self.resnet.maxpool(x)
-
-        x = self.resnet.layer1(x)
-        x = self.resnet.layer2(x)
-        x = self.resnet.layer3(x)
-        x = self.resnet.layer4(x)
-
-        x = self.resnet.avgpool(x)
-        x = self.flatten(x)
-
-        x = self.dropout(x)
-        x = self.resnet.fc(x)
+        x = self.resnet_18(x)
         return x
 
 
@@ -123,3 +106,11 @@ class LSTM(nn.Module):
         x = x[:, -1, :]
         x = self.fc(x)
         return x 
+    
+    
+if __name__ == "__main__":
+    a = torch.randn(32, 3, 64, 44)
+    model = ResNet18(num_classes=6)
+    y = model(a)
+    print(y)
+    print(y.shape)
