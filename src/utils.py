@@ -151,7 +151,7 @@ def plot_loss_curves(training_results: dict[str, list[float]]):
     plt.title("Loss Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
     plt.gca().xaxis.set_major_locator(MultipleLocator(2))
-    plt.gca().yaxis.set_major_locator(MultipleLocator(0.05))
+    plt.gca().yaxis.set_major_locator(MultipleLocator(0.025))
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
     plt.legend(fontsize=22)
