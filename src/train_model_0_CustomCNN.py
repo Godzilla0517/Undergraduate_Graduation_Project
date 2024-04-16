@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from timeit import default_timer as timer
 from model_builder import CustomCNN
 from data_setup import DroneAudioDataset
-from utils import split_dataset, plot_loss_curves, plot_acc_curves, save_model, eval_model
+from utils import split_dataset, plot_loss_curves, plot_acc_curves, eval_model
 from engine import train
 from torchvision import transforms
 
@@ -39,10 +39,11 @@ train_dataset, val_dataset, test_dataset = split_dataset(
     dataset=Drone_audio, 
     train_radio=0.8, 
     test_ratio=0.1, 
-    random_seed=None)
+    random_seed=42)
 train_iter = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_iter = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 test_iter = DataLoader(dataset=test_dataset, batch_size=len(test_dataset), shuffle=True)
+print("-" * 100)
 print("Dataset Ready!")
 print("-" * 100)
 
@@ -63,21 +64,27 @@ end_time = timer()
 total_time_model_0 = end_time - start_time
 print("-" * 100)
 print(f"Total training time: {total_time_model_0:.3f} seconds")
-save_model(model=model_0, 
-           target_dir=r"C:\MachineLearning\Graduation_Project\models", 
-           model_name="Model_0_CustomCNN.pth")
 plot_loss_curves(training_results=model_results)
 plot_acc_curves(training_results=model_results)
 
+
+
+torch.save(
+    obj=model_0.state_dict(), 
+    f=r"C:\MachineLearning\Graduation_Project\models\model_0_CustomCNN.pth"
+)
 loaded_model_0 = CustomCNN(num_classes=6)
 loaded_model_0.load_state_dict(
-    torch.load(f=r"C:\MachineLearning\Graduation_Project\models\Model_0_CustomCNN.pth")
-)
+    torch.load(f=r"C:\MachineLearning\Graduation_Project\models\model_0_CustomCNN.pth"))
 loaded_model_0 = loaded_model_0.to(DEVICE)
-loaded_model_0_results = eval_model(
+
+
+
+eval_model(
     model=loaded_model_0, 
     dataloader=test_iter,
     device=DEVICE,
     num_classes=6,
     is_RNN=False
 )
+print("-" * 100)

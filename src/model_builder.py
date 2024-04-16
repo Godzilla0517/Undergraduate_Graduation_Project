@@ -45,8 +45,13 @@ class ResNet18(nn.Module):
     
     def __init__(self, num_classes):
         super(ResNet18, self).__init__()
-        self.resnet_18 = resnet18(weights=None)
-        self.resnet_18.fc = nn.Linear(512, num_classes)
+        self.resnet_18 = resnet18(pretrained=True)
+        self.resnet_18.fc = nn.Sequential(
+            nn.Linear(512, 512), 
+            nn.ReLU(), 
+            nn.Dropout(0.5), 
+            nn.Linear(512, num_classes)
+        )
         
     def forward(self, x):
         x = self.resnet_18(x)

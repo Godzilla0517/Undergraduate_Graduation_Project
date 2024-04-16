@@ -151,7 +151,7 @@ def plot_loss_curves(training_results: dict[str, list[float]]):
     plt.title("Loss Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
     plt.gca().xaxis.set_major_locator(MultipleLocator(2))
-    plt.gca().yaxis.set_major_locator(MultipleLocator(0.25))
+    plt.gca().yaxis.set_major_locator(MultipleLocator(0.05))
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
     plt.legend(fontsize=22)
@@ -171,23 +171,13 @@ def plot_acc_curves(training_results: dict[str, list[float]]):
     plt.title("Acc Curves", fontsize=25)
     plt.xlabel("Epochs", fontsize=20)
     plt.gca().xaxis.set_major_locator(MultipleLocator(2))
-    plt.gca().yaxis.set_major_locator(MultipleLocator(0.05))
+    plt.gca().yaxis.set_major_locator(MultipleLocator(0.025))
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
     plt.legend(fontsize=22)
     plt.grid(True)
     plt.show()
 
-
-def save_model(model, target_dir, model_name):
-    
-    target_dir_path = Path(target_dir)
-    target_dir_path.mkdir(parents=True, exist_ok=True)
-
-    assert model_name.endswith(".pth") or model_name.endswith(".pt"), "model_name should end with '.pt' or '.pth'"
-    model_save_path = target_dir_path / model_name
-    print(f"[INFO] Saving model to: {model_save_path}")
-    torch.save(obj=model.state_dict(), f=model_save_path)
 
 
 def eval_model(model, dataloader, device, num_classes, is_RNN):
@@ -218,9 +208,4 @@ def eval_model(model, dataloader, device, num_classes, is_RNN):
               f"model_recall: {recall:.4f} | "
               f"model_F1_score: {F1_Score:.4f}")
         
-        return {"model_name": model.__class__.__name__, 
-                "model_acc": test_acc, 
-                "model_precision": precision, 
-                "model_recall": recall, 
-                "model_test_F1": F1_Score}
             
